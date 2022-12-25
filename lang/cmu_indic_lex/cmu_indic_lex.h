@@ -55,7 +55,11 @@ extern "C" {
     IND_DIGIT,
     IND_PUNC,
     IND_IGNORE,
-    IND_ADDAK
+    IND_ADDAK,
+    IND_CHILLU,
+    IND_ANUSWAARNG,
+    IND_URKOMA,
+    IND_KHANDAT
   };
 
   struct cmu_indic_char {

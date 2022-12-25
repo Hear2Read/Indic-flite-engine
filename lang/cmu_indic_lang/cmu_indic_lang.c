@@ -115,6 +115,7 @@ cst_val *cmu_indic_tokentowords(cst_item *token) {
 #include "indic_tel_num_table.h"
 #include "indic_tam_num_table.h"
 #include "indic_pan_num_table.h"
+#include "indic_ori_num_table.h"
 
 
 int ts_utf8_sequence_length(char c0);
@@ -133,7 +134,6 @@ int ts_utf8_sequence_length(char c0);
     // significant byte
 //    return (( 0xE5000000 >> (( c0 >> 3 ) & 0x1E )) & 3 ) + 1;
 // }
-
 
 int indic_digit_to_offset(const char *ind_digit) 
 {
@@ -156,7 +156,7 @@ int indic_digit_to_offset(const char *ind_digit)
     offset = 0x0A66;
   if ((i >= 0x0AE6) && (i <= 0x0AEF))   /*Gujarati*/
     offset = 0x0AE6;
-  if ((i >= 0x0B66) && (i <= 0x0B6F))   /*Oriya*/
+  if ((i >= 0x0B66) && (i <= 0x0B6F))   /*Odia*/
     offset = 0x0B66;
   if ((i >= 0x0BE6) && (i <= 0x0BEF))   /*Tamil*/
     offset = 0x0BE6;
@@ -243,6 +243,7 @@ static cst_val *indic_number_lang(const indic_num_table *num_table)
 {
     return string_val(num_table->lang);
 }
+
 static cst_val *indic_number_hundred(const indic_num_table *num_table)
 {
     return string_val(num_table->hundred);
@@ -421,7 +422,6 @@ static int indic_nump_old(const char *number)
 }
 #endif
 
-
 static int indic_nump(const char *number)
 {
     /* Check if non-empty string */
@@ -561,6 +561,8 @@ static cst_val *cmu_indic_tokentowords_one(cst_item *token, const char *name)
         num_table = &tam_num_table;
     else if (cst_streq(variant,"tel"))
         num_table = &tel_num_table;
+    else if (cst_streq(variant,"ori"))
+        num_table = &ori_num_table;
     else
         num_table = &eng_num_table;
 

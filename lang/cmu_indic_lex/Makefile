@@ -39,11 +39,14 @@ DIRNAME=lang/cmu_indic_lex
 BUILD_DIRS = 
 ALL_DIRS= 
 H = cmu_indic_lex.h
-SRCS = cmu_indic_lex.c
+SRCS = cmu_indic_lex.c cmu_indic_asmxobdo_lex_entries.c cmu_indic_asmxobdo_lex_data.c
+
+LEX_DATA_INCLUDES = cmu_indic_asmxobdo_lex_data_raw.c cmu_indic_asmxobdo_lex_num_bytes.c 
+
 SCRIPTS = 
 OBJS = $(SRCS:.c=.o)
 SCM=
-FILES = Makefile $(SCM) $(SRCS) $(H) $(SCRIPTS)
+FILES = Makefile $(SCM) $(SRCS) $(H) $(SCRIPTS) $(LEX_DATA_INCLUDES)
 LIBNAME = flite_cmu_indic_lex
 LOCAL_INCLUDES = 
 
