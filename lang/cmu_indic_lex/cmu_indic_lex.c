@@ -358,7 +358,7 @@ static const char *cmu_indic_get_char_phoneme(const cst_val *indic_char)
     if ((c == 0x0B8F)||(c == 0x0BC7)) return "e:";
     if (c == 0x0B92) return "o";
     if ((c == 0x0B93)||(c == 0x0BCB)) return "o:";
-    if (c == 0x0BA9) return "n"; /* Tamil alveolar nasal */
+    /* if (c == 0x0BA9) return "n";  Tamil alveolar nasal -removed for manaivikku -shyam 20230116*/
     if (c == 0x0BB1) return "rr";
     if (c == 0x0BB4) return "zr";
     
@@ -1020,7 +1020,7 @@ static cst_val *cmu_indic_lex_tamil_nr_replacement(cst_val *in_phones)
 
     for (p=in_phones; p && val_cdr(p); p=val_cdr(p)) 
     {
-        if ((cst_streq(val_string(val_car(p)),"n")) &&
+        if ((cst_streq(val_string(val_car(p)),"nB")) &&
             (cst_streq(val_string(val_car(val_cdr(p))),"rr")))
         {   /* Insert dB between them */
             replace_car(p,string_val("nr"));
