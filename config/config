@@ -4,20 +4,20 @@
 # Do not hand edit.
 
 TARGET_OS    = android
-TARGET_CPU   = x86_64
+TARGET_CPU   = armeabiv7a
 HOST_OS    = linux-gnu
 HOST_CPU   = x86_64
 
-CC       = /mnt/d/builds/tts/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android21-clang
+CC       = /mnt/d/builds/tts/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
 CFLAGS   = -g -O2 -Wall -fPIE -fPIC -Ofast -Wno-invalid-source-encoding 
 CPPFLAGS = 
 SHFLAGS  = 
 LDFLAGS  =  -pie
 
-AR       = /mnt/d/builds/tts/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android-ar
-RANLIB   = /mnt/d/builds/tts/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android-ranlib
+AR       = /mnt/d/builds/tts/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ar
+RANLIB   = /mnt/d/builds/tts/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ranlib
 INSTALL  = /usr/bin/install -c
-NM       = /mnt/d/builds/tts/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android-nm
+NM       = /mnt/d/builds/tts/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin/arm-linux-androideabi-nm
 
 M68KCC   = 
 WINDRES  = 

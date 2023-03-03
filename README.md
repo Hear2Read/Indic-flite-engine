@@ -1,7 +1,7 @@
 
          Flite: a small run-time speech synthesis engine
                       version 2.1-release
-          Copyright Carnegie Mellon University 1999-2017
+          Copyright Carnegie Mellon University 1999-2022
                       All rights reserved
                       http://cmuflite.org
               https://github.com/festvox/flite
@@ -28,15 +28,16 @@ Kevin A. Lenzo <lenzo@cs.cmu.edu> and Alan W Black <awb@cs.cmu.edu>.
 Flite is the answer to the complaint that Festival is too big, too slow,
 and not portable enough.
 
-o Flite is designed for very small devices, such as PDAs, and also
-  for large server machines which need to serve lots of ports.
+o Flite is designed for very small devices, such as phones, portables,
+  PDAs, and also for large server machines which need to serve lots of
+  ports.
   
-o Flite is not a replacement for Festival but an alternative run time
+o Flite is not a replacement for Festival but an alternative run-time
   engine for voices developed in the FestVox framework where size and
   speed is crucial.
   
 o Flite is all in ANSI C, it contains no C++ or Scheme, thus requires
-  more care in programming, and is harder to customize at run time.
+  more care in programming, and is harder to customize at run-time.
   
 o It is thread safe
 
@@ -46,7 +47,8 @@ o Voices, lexicons and language descriptions can be compiled
   
 o All voices, lexicons and language model data are const and in the
   text segment (i.e. they may be put in ROM).  As they are linked in
-  at compile time, there is virtually no startup delay.
+  at compile time, there is virtually no startup delay.  Voices may
+  also be loaded from a single file (or across an http connection).
   
 o Although the synthesized output is not exactly the same as the same 
   voice in Festival they are effectively equivalent.  That is, flite 
@@ -55,7 +57,7 @@ o Although the synthesized output is not exactly the same as the same
   
 o For standard diphone voices, maximum run time memory
   requirements are approximately less than twice the memory requirement 
-  for the waveform generated.  For 32bit archtectures
+  for the waveform generated.  For 32bit architectures
   this effectively means under 1M.
   
 o The flite program supports, synthesis of individual strings or files
@@ -104,7 +106,7 @@ Supported platforms:
 We have successfully compiled and run on 
 
     o Various Intel Linux systems (and iPaq Linux), under various versions
-      of GCC (2.7.2 to 6.x)
+      of GCC (2.7.2 to 10.x)
   
     o Mac OS X
 
@@ -118,33 +120,47 @@ We have successfully compiled and run on
 
     o Windows 2000/XP and later under Cygwin 1.3.5 and later
 
-    o Windows 10 with Windows Subsystem for Linux
+    o Windows 10/11 with Windows Subsystem for Linux
 
     o Successfully compiles and runs under 64Bit Linux architectures
 
     o OSF1 V4.0 (gives an unimportant warning about sizes when compiled cst_val.c)
 
+    o WASI has experimental support (see below for details)
+
 Previously we supported PalmOS and Windows CE but these seem to be rare
 nowadays so they are no longer actively supported.
 
 Other similar platforms should just work, we have also cross compiled
-on a Linux machine for StrongARM.  However note that new byte order
-architectures may not work directly as there is some careful
-byte order constraints in some structures.  These are portable but may
-require reordering of some fields, contact us if you are moving to
-a new archiecture.
+on a Linux machine for various ARM and MIPS processors.  However note
+that new byte order architectures may not work directly as there is
+some careful byte order constraints in some structures.  These are
+portable but may require reordering of some fields, contact us if you
+are moving to a new architecture.
 
 News
 ----
 
+New in 2.3 (Mar 2022)
+
+    o Fixed features, now grapheme voices are much closer to
+    Festival quality
+
+New in 2.2 (Oct 2018)
+
+    o Better grapheme support (Wilderness Languages) hundreds of new
+    languages
+    
 New in 2.1 (Oct 2017)
 
-    o Improved Indic front end support (thanks to Suresh Bazaj @ Hear2Read)
+    o Improved Indic front end support (thanks to Suresh Bazaj
+    @ Hear2Read)
     
     o 18 English Voices (various accents)
     
-    o 12 Indian Voices (Bengali, Gujarati, Hindi, Kannada, Marathi, Panjabi
-      Tamil and Telugu) usually with bilingual (with English) support
+    o 12 Indian Voices (Bengali, Gujarati, Hindi, Kannada, Marathi,
+    Panjabi, Tamil and Telugu) usually with bilingual (with English)
+    support
       
     o Can do byteswap architectures [again] (ar9331 yun arduino, zsun etc)
     
@@ -152,14 +168,16 @@ New in 2.1 (Oct 2017)
     
     o grapheme based festvox builds give working flitevox voices
     
-    o SAPI support for CG voices (thanks to Alok Parlikar @ Cobalt Speech and
-      Language INC)
+    o SAPI support for CG voices (thanks to Alok Parlikar @ Cobalt
+    Speech and Language INC)
       
-    o gcc 6.x support
+    o gcc 6.x-10.x support
     
-    o .flitevox files (and models) 40% of previous size, but same quality
+    o .flitevox files (and models) 40% of previous size, but
+    same quality
 
 New in 2.0.0 (Dec 2014)
+
     o Indic language support (Hindi, Tamil and Telugu)
     
     o SSML support
@@ -189,6 +207,7 @@ New in 2.0.0 (Dec 2014)
        https://github.com/festvox/bard
 
 New in 1.4.1 (March 2010)
+
     o better ssml support (actually does something)
     
     o better clunit support (smaller)
@@ -196,6 +215,7 @@ New in 1.4.1 (March 2010)
     o Android support
 
 New in 1.4 (December 2009)
+
     o crude multi-voice selection support (may change)
     
     o 4 basic voices are included 3 clustergen (awb, rms and slt) plus
@@ -219,6 +239,7 @@ New in 1.4 (December 2009)
     o Speed-ups (and fixes) for converting clunits festvox voices
 
 New in 1.3-release (October 2005)
+
     o fixes to lpc residual extraction to give better quality output
     
     o An updated lexicon (festlex_CMU from festival-2.0.95) and better
@@ -249,9 +270,9 @@ Compilation
 
 In general
 
-    tar zxvf flite-2.1-current.tar.gz
+    tar zxvf flite-2.3-current.tar.gz
     
-    cd flite-2.1-current
+    cd flite-2.3-current
     ./configure 
     make
     make get_voices
@@ -283,12 +304,53 @@ them (and your own sets if you make config/XXX.lv).  For example
 
 Will use the languages and voices defined in config/transtac.lv
 
+### Cross-compiling to WASI (experimental)
+In order to successfully cross-compile to WASI, firstly head over to
+[CraneStation/wasi-sdk](https://github.com/CraneStation/wasi-sdk)
+and install the WASI toolchain.
+
+Afterwards, you can cross-compile to WASI as follows:
+
+```
+./configure --host=wasm32-wasi \
+CC=/path/to/wasi-sdk/bin/clang \
+AR=/path/to/wasi-sdk/bin/llvm-ar \
+RANLIB=/path/to/wasi-sdk/bin/llvm-ranlib
+```
+
+It is important to correctly specify `ar` and `ranlib` that is bundled
+with the WASI `clang`. Otherwise, you will most likely experience missing
+symbols during linking, plus you may experience weird `llvm` errors such as
+
+```
+LLVM ERROR: malformed uleb128, extends past end
+```
+
+When cross-compiling from macOS, you might have to manually specify the sysroot.
+You can do this by tweaking the `CC` variable as follows:
+
+```
+CC="/path/to/wasi-sdk/bin/clang --sysroot=/path/to/wasi-sdk/share/sysroot"
+```
+
+After the configure step is successful, simply run as usual:
+```
+make
+```
+
+The generated WASI binary can then be found in `bin/` directory:
+
+```
+file bin/flite
+> bin/flite: WebAssembly (wasm) binary module version 0x1 (MVP)
+```
+
 Usage:
 ------
 
 The ./bin/flite binary contains all supported voices and you may
 choose between the voices with the -voice flag and list the supported
-voices with the -lw flag.  Note the kal (diphone) voice is a different
+voices with the -lv flag.  Note the kal (diphone) voice is a different
 technology from the others and is much less computationally expensive
 but more robotic.  For each voice additional binaries that contain
 only that voice are created in ./bin/flite_FULLVOICENAME,
@@ -410,7 +472,7 @@ process.
 We expect that often voices will be loaded from external files, and we
 have now set up a voice repository in
 
-    http://festvox.org/flite/flite-2.1/voices/*.flitevox
+    http://festvox.org/flite/packed/flite-2.1/voices/*.flitevox
    
 If you visit there with a browser you can hear the examples.  You can
 also download the .flitevox files to you machine so you don't need a

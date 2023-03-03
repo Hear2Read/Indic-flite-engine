@@ -1,37 +1,9 @@
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-#build files
-build/
-bin/
-
+bin
+build
+config/config
+config/system.mak
+config.log
+config.status
+include/flite_version.h
+main/flite_lang_list.c
+main/flite_voice_list.c

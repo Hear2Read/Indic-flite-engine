@@ -182,9 +182,12 @@ static float cg_state_duration(cst_item *s, cst_cg_db *cg_db)
     const char *n;
     int i, x, dm;
 
+    /* printf("awb_debug state_dur pre %s\n",item_feat_string(s,"name")); */
     for (dm=0,zdur=0.0; dm < cg_db->num_dur_models; dm++)
         zdur += val_float(cart_interpret(s,cg_db->dur_cart[dm]));
     zdur /= dm;  /* get average zdur prediction from all dur models */
+    /* printf("awb_debug state_dur post %s zdur %f\n",
+       item_feat_string(s,"name"),zdur); */
     n = item_feat_string(s,"name");
 
     /* Note we only use the dur stats from the first model, that is */
@@ -199,11 +202,15 @@ static float cg_state_duration(cst_item *s, cst_cg_db *cg_db)
         }
     }
     if (!cg_db->dur_stats[0][i])  /* unknown type name */
-        x = 0;
+        x = 0; /* shouldn't get here, and would be 0 already anyway */
 
+    /* unz-score the zdur with the mean/stddev for the current phone */
     dur = (zdur*cg_db->dur_stats[0][x]->stddev)+cg_db->dur_stats[0][x]->mean;
-
-    /*    dur = 1.2 * (float)exp((float)dur); */
+    /*
+    printf("awb_debug %s i %d zdur %f mean %f stddev %f dur %f\n",
+           n,x,zdur,cg_db->dur_stats[0][x]->mean,
+           cg_db->dur_stats[0][x]->stddev,dur);
+    */
 
     return dur;
 }
@@ -367,6 +374,8 @@ static void cg_F0_interpolate_spline(cst_utterance *utt,
         start_index = ffeature_int(syl,"R:SylStructure.daughter1.R:segstate.daughter1.R:mcep_link.daughter1.frame_number");
         end_index = ffeature_int(syl,"R:SylStructure.daughtern.R:segstate.daughtern.R:mcep_link.daughtern.frame_number");
         mid_index = (int)((start_index + end_index)/2.0);
+        if (end_index <= start_index)
+            continue;
         
         start_f0 = param_track->frames[start_index][0];
         if (end_f0 > 0.0)
@@ -443,23 +452,28 @@ static void cg_smooth_F0(cst_utterance *utt,
     /* Smooth F0 and mark unvoice frames as 0.0 */
     cst_item *mcep;
     int i;
-    float mean, stddev;
+    float base_mean, base_stddev;
 
     /* cg_smooth_F0_naive(param_track); */
     
     cg_F0_interpolate_spline(utt,param_track);
 
-    mean = get_param_float(utt->features,"int_f0_target_mean", cg_db->f0_mean);
-    mean *= get_param_float(utt->features,"f0_shift", 1.0);
-    stddev = 
+    base_mean = get_param_float(utt->features,"int_f0_target_mean", cg_db->f0_mean);
+    base_mean *= get_param_float(utt->features,"f0_shift", 1.0);
+    base_stddev =
         get_param_float(utt->features,"int_f0_target_stddev", cg_db->f0_stddev);
 #if 0
-    FILE *ftt; int ii;
+    FILE *ftt; int ii, awbi;
     ftt = cst_fopen("awb.f0",CST_OPEN_WRITE);
     printf("awb_debug saving F0\n");
     for (ii=0; ii<param_track->num_frames; ii++)
-        cst_fprintf(ftt,"%f %f\n",param_track->frames[ii][0],
-                    param_track->frames[ii][param_track->num_channels-2]);
+    {
+        for (awbi=0; awbi<param_track->num_channels; awbi++)
+            cst_fprintf(ftt,"%f ",param_track->frames[ii][awbi]);
+        cst_fprintf(ftt,"\n");
+        /* cst_fprintf(ftt,"%f %f\n",param_track->frames[ii][0],
+           param_track->frames[ii][param_track->num_channels-2]); */
+    }
     cst_fclose(ftt);
 #endif
 
@@ -467,6 +481,25 @@ static void cg_smooth_F0(cst_utterance *utt,
     {
         if (voiced_frame(mcep))
         {
+            float mean = base_mean;
+            float stddev = base_stddev;
+            float local_f0_mean =
+            ffeature_float(mcep,
+                "R:mcep_link.parent.R:segstate.parent.R:SylStructure.parent.parent.R:Token.parent.local_f0_mean"
+            );
+            if (local_f0_mean != 0.0)
+            {
+                mean = local_f0_mean;
+            }
+            float local_f0_range =
+            ffeature_float(mcep,
+                "R:mcep_link.parent.R:segstate.parent.R:SylStructure.parent.parent.R:Token.parent.local_f0_range"
+            );
+            if (local_f0_range > 0.0)
+            {
+                /* feature_float returns 0 by default, shifted to allow 0 to be passed. */
+                stddev = local_f0_range - 1.0;
+            }
             /* scale the F0 -- which normally wont change it at all */
             param_track->frames[i][0] = 
                 (((param_track->frames[i][0]-cg_db->f0_mean)/cg_db->f0_stddev) 
@@ -627,10 +660,12 @@ static cst_utterance *cg_predict_params(cst_utterance *utt)
         for (pm=0; pm<cg_db->num_param_models; pm++)
         {
             mcep_tree = cg_db->param_trees[pm][p];
+            /* printf("awb_debug mcep_tree name %s i\n",mname); */
             f = val_int(cart_interpret(mcep,mcep_tree));
             /* If there is one model this will be fine, if there are */
             /* multiple models this will be the nth model */
             item_set_int(mcep,"clustergen_param_frame",f);
+            /* printf("awb_debug name %s i %d f %d\n",mname,i,f); */
 
             /* Unpack the model[pm][f] vector */
             unpack_model_vector(cg_db,pm,f,unpacked_vector);
@@ -704,12 +739,15 @@ static cst_utterance *cg_resynth(cst_utterance *utt)
 
     cg_db = val_cg_db(utt_feat_val(utt,"cg_db"));
     param_track = val_track(utt_feat_val(utt,"param_track"));
+    /* awb_debug */
+    /* cst_track_save_est(param_track, "flite_pre_mlpg.track"); */
     if (cg_db->mixed_excitation)
         str_track = val_track(utt_feat_val(utt,"str_track"));
 
     if (cg_db->do_mlpg)
     {
         smoothed_track = mlpg(param_track, cg_db);
+        /* cst_track_save_est(smoothed_track, "flite_post_mlpg.track"); */
         w = mlsa_resynthesis(smoothed_track,str_track,cg_db,
                              asi,mlsa_speed_param);
         delete_track(smoothed_track);
