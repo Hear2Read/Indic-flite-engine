@@ -369,13 +369,18 @@ static const char *cmu_indic_get_char_phoneme(const cst_val *indic_char)
     
     /* Assamese/Bengali */
     /* No length distinction for these */
-    if (c == 0x0988) return "i";
-    if (c == 0x098A) return "u";
+    /* added non independent vowels -shyam 230424 */
+    if ((c == 0x0988) || (c == 0x09C0)) return "i";
+    if ((c == 0x098A) || (c == 0x09C2)) return "u";
     
     /* Assamese */
     if (c == 0x09F0) return "9r";
     if (c == 0x09F1) return "v";
-
+      
+    /* Nepali */
+    /* No length distinction for i vs i: -shyam 230424 */
+    if ((c == 0x0908) || (c == 0x0940)) return "i";
+    
     /* Not a special case */
     c = cmu_indic_lex_ord_to_offset(c);
 
@@ -531,9 +536,13 @@ cst_val *cmu_indic_lex_ord_to_phones(const cst_val *ords,
                 if (!next_char) { /* We are in last char. Add schwa? */
                     if ((!prev_char) || /* Always add schwa for one-char words */
                         (!cmu_indic_variant_deletes_word_final_schwa) ||
-                        ((cst_streq(indic_variant, "mar")) && /* mar doesn't delete schwa */
-                            ((prev_char_type == IND_HALANT) || /* after cons. clusters */
-                             (prev_char_type == IND_ANUSWAAR) || /* - Shyam 20190317 */
+                        /* mar doesn't delete schwa after cons. clusters */
+                        /* - Shyam 20190317 */
+                        /* added nep -shyam 230424*/
+                        (((cst_streq(indic_variant, "mar")) || 
+                          (cst_streq(indic_variant, "nep"))) &&
+                            ((prev_char_type == IND_HALANT) || 
+                             (prev_char_type == IND_ANUSWAAR) ||
                              (prev_char_type == IND_VISARGA)))) {
                         out_phone_strings = cons_val(string_val("A"), out_phone_strings);
                     } else {
@@ -542,6 +551,7 @@ cst_val *cmu_indic_lex_ord_to_phones(const cst_val *ords,
                         /* at the end. But Adding that rule here seems to */
                         /* not have worked properly. Hence, we always */
                         /* delete the final schwa. */
+                        /* TODO: have we already done this? -shyam 230424*/
                     }
                 } else { /* Not a final char */
                     /* Assamese urdho koma - only works for unicode version, not ASCII */
@@ -727,20 +737,34 @@ cst_val *cmu_indic_lex_nasal_postfixes(cst_val *in_phones,
            prev vowel */
         if ((cst_streq(indic_variant,"asm") ||
              cst_streq(indic_variant,"ben") || 
-             cst_streq(indic_variant,"ori")) &&
+             cst_streq(indic_variant,"ori") || 
+             cst_streq(indic_variant,"nep")) &&
             (cst_streq("nX", val_string(val_car(val_cdr(p))))) &&
             (cmu_indic_is_vowel(val_string(val_car(p)))))
-        {
-            tmpstr = cst_strcat(val_string(val_car(p)),"nas");
-            replace_car(p,string_val(tmpstr));
-            cst_free(tmpstr);
-            replace_cdr(p,val_cdr(val_cdr(p)));
+        {   
+            /* nep has m before j, 9r, l and v -shyam 230424*/
+            if ((cst_streq(indic_variant,"nep")) &&
+                ((val_cdr(val_cdr(p))) && (val_car(val_cdr(val_cdr(p))))) &&
+                ((cst_streq("j",val_string(val_car(val_cdr(val_cdr(p)))))) ||
+                 (cst_streq("9r",val_string(val_car(val_cdr(val_cdr(p)))))) ||
+                 (cst_streq("l",val_string(val_car(val_cdr(val_cdr(p)))))) ||
+                 (cst_streq("v",val_string(val_car(val_cdr(val_cdr(p))))))))
+            {
+                replace_car(val_cdr(p),string_val("m"));
+            }
+            else 
+            {
+                tmpstr = cst_strcat(val_string(val_car(p)),"nas");
+                replace_car(p,string_val(tmpstr));
+                cst_free(tmpstr);
+                replace_cdr(p,val_cdr(val_cdr(p)));
+            }
         }
         /* Nazalise vowels at ends of words */
         else if ((cmu_indic_is_vowel(val_string(val_car(p)))) &&
-            (cst_streq("nX", val_string(val_car(val_cdr(p))))) &&
-            ((!val_cdr(val_cdr(p))) || 
-             (!val_car(val_cdr(val_cdr(p)))))) 
+                (cst_streq("nX", val_string(val_car(val_cdr(p))))) &&
+                ((!val_cdr(val_cdr(p))) || 
+                 (!val_car(val_cdr(val_cdr(p)))))) 
         {
             if (cst_streq("A", val_string(val_car(p))) ||
                 cst_streq(indic_variant,"kan") ||/* no nasal vowels here */
@@ -774,7 +798,7 @@ cst_val *cmu_indic_lex_nasal_postfixes(cst_val *in_phones,
                     case 'a': repl_ph = "nr"; break;
                     case 'd': repl_ph = "nB"; break;
                     case 'l': repl_ph = "m"; break;
-                    default: repl_ph = "nB";
+                    default: repl_ph = "m";
                     };
                     replace_car(p,string_val(repl_ph));
                 }
@@ -1622,6 +1646,8 @@ cst_val *cmu_indic_lex_lts_function(const struct lexicon_struct *l,
       cmu_indic_variant_deletes_word_final_schwa = 0;
     } else if (cst_streq(indic_variant, "ori")) {/* 090720 for Odia */
       cmu_indic_variant_deletes_word_final_schwa = 0;
+    } else if (cst_streq(indic_variant, "nep")) {/* 230424 for Nepali - shyam*/
+      cmu_indic_variant_deletes_word_final_schwa = 1;
     } else {
       cmu_indic_variant_deletes_word_final_schwa = 0;
       printf("Unknown indic variant: %s!\n", indic_variant);
