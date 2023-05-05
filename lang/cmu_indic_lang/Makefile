@@ -50,7 +50,8 @@ H = cmu_indic_lang.h cmu_indic_phrasing_cart.h \
     indic_tam_num_table.h \
     indic_tel_num_table.h \
     indic_pan_num_table.h \
-    indic_ori_num_table.h
+    indic_ori_num_table.h \
+    indic_nep_num_table.h
 SRCS = cmu_indic_lang.c cmu_indic_phoneset.c cmu_indic_phrasing_cart.c
 SCRIPTS = 
 OBJS = $(SRCS:.c=.o)
